@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "wardrobe-app",
+    "slug": "wardrobe-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFE5EC"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wardrobe.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFE5EC"
+      },
+      "package": "com.wardrobe.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "需要访问相册以选择衣服图片",
+          "cameraPermission": "需要访问相机以拍摄衣服照片"
+        }
+      ],
+      "expo-sqlite",
+      "expo-asset",
+      "expo-font"
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+/**
+ * 衣服数据仓库
+ */
+
+import { getDatabase } from './db';
+import { ClothesItem, CategoryType, CategoryCount } from '../types';
+import { CATEGORY_CONFIGS, createCategoryCount } from '../constants/categories';
+
+/**
+ * 获取衣服总数
+ */
+export const getTotalCount = async (): Promise<number> => {
+  const db = await getDatabase();
+  const result = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM clothes'
+  );
+  return result?.count ?? 0;
+};
+
+/**
+ * 获取各分类数量
+ */
+export const getCategoryCounts = async (): Promise<CategoryCount[]> => {
+  const db = await getDatabase();
+
+  // 获取所有分类的计数
+  const results = await db.getAllAsync<{ category: CategoryType; count: number }>(
+    'SELECT category, COUNT(*) as count FROM clothes GROUP BY category'
+  );
+
+  // 创建分类计数的映射
+  const countMap = new Map<CategoryType, number>();
+  results.forEach((row) => {
+    countMap.set(row.category, row.count);
+  });
+
+  // 返回所有分类的统计（包括数量为0的分类）
+  return CATEGORY_CONFIGS.map((config) =>
+    createCategoryCount(config.type, countMap.get(config.type) ?? 0)
+  );
+};
+
+/**
+ * 获取最近添加的衣服
+ */
+export const getRecentItems = async (limit: number = 4): Promise<ClothesItem[]> => {
+  const db = await getDatabase();
+  const results = await db.getAllAsync<ClothesItem>(
+    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes ORDER BY created_at DESC LIMIT ?',
+    [limit]
+  );
+  return results;
+};
+
+/**
+ * 添加新衣服
+ */
+export const addClothes = async (
+  imageUri: string,
+  category: CategoryType,
+  name: string = ''
+): Promise<number> => {
+  const db = await getDatabase();
+  const now = Date.now();
+
+  const result = await db.runAsync(
+    'INSERT INTO clothes (name, category, image_uri, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+    [name, category, imageUri, now, now]
+  );
+
+  return result.lastInsertRowId;
+};
+
+/**
+ * 根据ID获取衣服
+ */
+export const getClothesById = async (id: number): Promise<ClothesItem | null> => {
+  const db = await getDatabase();
+  const result = await db.getFirstAsync<ClothesItem>(
+    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes WHERE id = ?',
+    [id]
+  );
+  return result ?? null;
+};
+
+/**
+ * 根据分类获取衣服列表
+ */
+export const getClothesByCategory = async (
+  category: CategoryType
+): Promise<ClothesItem[]> => {
+  const db = await getDatabase();
+  const results = await db.getAllAsync<ClothesItem>(
+    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes WHERE category = ? ORDER BY created_at DESC',
+    [category]
+  );
+  return results;
+};
+
+/**
+ * 删除衣服
+ */
+export const deleteClothes = async (id: number): Promise<void> => {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM clothes WHERE id = ?', [id]);
+};
+
+/**
+ * 更新衣服信息
+ */
+export const updateClothes = async (
+  id: number,
+  updates: { name?: string; category?: CategoryType }
+): Promise<void> => {
+  const db = await getDatabase();
+  const now = Date.now();
+
+  if (updates.name !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET name = ?, updated_at = ? WHERE id = ?',
+      [updates.name, now, id]
+    );
+  }
+
+  if (updates.category !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET category = ?, updated_at = ? WHERE id = ?',
+      [updates.category, now, id]
+    );
+  }
+};
