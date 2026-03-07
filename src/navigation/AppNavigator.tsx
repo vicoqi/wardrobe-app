@@ -10,6 +10,7 @@ import { RootStackParamList } from '../types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { AddClothesScreen } from '../screens/AddClothesScreen';
 import { WardrobeBrowseScreen } from '../screens/WardrobeBrowseScreen';
+import { ClothesDetailScreen } from '../screens/ClothesDetailScreen';
 import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -25,15 +26,6 @@ const CategoryDetailScreen: React.FC<CategoryDetailProps> = ({ navigation, route
   }, [navigation, route.params.category]);
 
   return null;
-};
-
-// 占位页面组件 - 衣服详情页面
-const ClothesDetailScreen: React.FC = () => {
-  return (
-    <React.Fragment>
-      {/* 占位页面，后续实现 */}
-    </React.Fragment>
-  );
 };
 
 export const AppNavigator: React.FC = () => {
@@ -84,7 +76,7 @@ export const AppNavigator: React.FC = () => {
           name="ClothesDetail"
           component={ClothesDetailScreen}
           options={{
-            title: '衣服详情',
+            headerShown: false,
           }}
         />
       </Stack.Navigator>
