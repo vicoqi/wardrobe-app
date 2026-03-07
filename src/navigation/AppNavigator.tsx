@@ -8,18 +8,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../types';
 import { HomeScreen } from '../screens/HomeScreen';
+import { AddClothesScreen } from '../screens/AddClothesScreen';
 import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-// 占位页面组件 - 添加衣服页面
-const AddClothesScreen: React.FC = () => {
-  return (
-    <React.Fragment>
-      {/* 占位页面，后续实现 */}
-    </React.Fragment>
-  );
-};
 
 // 占位页面组件 - 分类详情页面
 const CategoryDetailScreen: React.FC = () => {

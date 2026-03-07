@@ -3,7 +3,7 @@
  */
 
 import { getDatabase } from './db';
-import { ClothesItem, CategoryType, CategoryCount } from '../types';
+import { ClothesItem, CategoryType, CategoryCount, AddClothesParams, SeasonType } from '../types';
 import { CATEGORY_CONFIGS, createCategoryCount } from '../constants/categories';
 
 /**
@@ -46,7 +46,7 @@ export const getCategoryCounts = async (): Promise<CategoryCount[]> => {
 export const getRecentItems = async (limit: number = 4): Promise<ClothesItem[]> => {
   const db = await getDatabase();
   const results = await db.getAllAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes ORDER BY created_at DESC LIMIT ?',
+    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes ORDER BY created_at DESC LIMIT ?',
     [limit]
   );
   return results;
@@ -55,17 +55,14 @@ export const getRecentItems = async (limit: number = 4): Promise<ClothesItem[]> 
 /**
  * 添加新衣服
  */
-export const addClothes = async (
-  imageUri: string,
-  category: CategoryType,
-  name: string = ''
-): Promise<number> => {
+export const addClothes = async (params: AddClothesParams): Promise<number> => {
   const db = await getDatabase();
   const now = Date.now();
+  const season = (params.season ?? []).join(',');
 
   const result = await db.runAsync(
-    'INSERT INTO clothes (name, category, image_uri, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-    [name, category, imageUri, now, now]
+    'INSERT INTO clothes (name, category, image_uri, season, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [params.name ?? '', params.category, params.imageUri, season, params.notes ?? '', now, now]
   );
 
   return result.lastInsertRowId;
@@ -77,7 +74,7 @@ export const addClothes = async (
 export const getClothesById = async (id: number): Promise<ClothesItem | null> => {
   const db = await getDatabase();
   const result = await db.getFirstAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes WHERE id = ?',
+    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes WHERE id = ?',
     [id]
   );
   return result ?? null;
@@ -91,7 +88,7 @@ export const getClothesByCategory = async (
 ): Promise<ClothesItem[]> => {
   const db = await getDatabase();
   const results = await db.getAllAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, created_at, updated_at FROM clothes WHERE category = ? ORDER BY created_at DESC',
+    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes WHERE category = ? ORDER BY created_at DESC',
     [category]
   );
   return results;
@@ -110,7 +107,7 @@ export const deleteClothes = async (id: number): Promise<void> => {
  */
 export const updateClothes = async (
   id: number,
-  updates: { name?: string; category?: CategoryType }
+  updates: { name?: string; category?: CategoryType; season?: SeasonType[]; notes?: string }
 ): Promise<void> => {
   const db = await getDatabase();
   const now = Date.now();
@@ -126,6 +123,20 @@ export const updateClothes = async (
     await db.runAsync(
       'UPDATE clothes SET category = ?, updated_at = ? WHERE id = ?',
       [updates.category, now, id]
+    );
+  }
+
+  if (updates.season !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET season = ?, updated_at = ? WHERE id = ?',
+      [updates.season.join(','), now, id]
+    );
+  }
+
+  if (updates.notes !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET notes = ?, updated_at = ? WHERE id = ?',
+      [updates.notes, now, id]
     );
   }
 };
