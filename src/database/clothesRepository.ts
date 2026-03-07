@@ -3,7 +3,7 @@
  */
 
 import { getDatabase } from './db';
-import { ClothesItem, CategoryType, CategoryCount, AddClothesParams, SeasonType } from '../types';
+import { ClothesItem, CategoryType, CategoryCount, AddClothesParams, SeasonType, CategoryFilter, PaginatedResult } from '../types';
 import { CATEGORY_CONFIGS, createCategoryCount } from '../constants/categories';
 
 /**
@@ -139,4 +139,55 @@ export const updateClothes = async (
       [updates.notes, now, id]
     );
   }
+};
+
+/**
+ * 分页查询衣服
+ */
+export const getClothesPaginated = async (params: {
+  page: number;
+  pageSize: number;
+  category?: CategoryFilter;
+  searchKeyword?: string;
+}): Promise<PaginatedResult<ClothesItem>> => {
+  const db = await getDatabase();
+  const { page, pageSize, category, searchKeyword } = params;
+
+  // 构建查询条件
+  const conditions: string[] = ['1=1'];
+  const sqlParams: (string | number)[] = [];
+
+  // 分类筛选
+  if (category && category !== 'all') {
+    conditions.push('category = ?');
+    sqlParams.push(category);
+  }
+
+  // 搜索关键词（在 name 和 notes 中搜索）
+  if (searchKeyword && searchKeyword.trim()) {
+    conditions.push('(name LIKE ? OR notes LIKE ?)');
+    const keyword = `%${searchKeyword.trim()}%`;
+    sqlParams.push(keyword, keyword);
+  }
+
+  const whereClause = conditions.join(' AND ');
+  const offset = page * pageSize;
+
+  // 查询 pageSize + 1 条数据来判断是否还有更多
+  const results = await db.getAllAsync<ClothesItem>(
+    `SELECT id, name, category, image_uri, season, notes, created_at, updated_at
+     FROM clothes
+     WHERE ${whereClause}
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...sqlParams, pageSize + 1, offset]
+  );
+
+  const hasMore = results.length > pageSize;
+  const items = hasMore ? results.slice(0, pageSize) : results;
+
+  return {
+    items,
+    hasMore,
+  };
 };

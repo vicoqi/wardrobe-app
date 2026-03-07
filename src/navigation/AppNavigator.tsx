@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { AddClothesScreen } from '../screens/AddClothesScreen';
+import { WardrobeBrowseScreen } from '../screens/WardrobeBrowseScreen';
 import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -59,6 +60,13 @@ export const AppNavigator: React.FC = () => {
           component={AddClothesScreen}
           options={{
             title: '添加衣服',
+          }}
+        />
+        <Stack.Screen
+          name="WardrobeBrowse"
+          component={WardrobeBrowseScreen}
+          options={{
+            title: '我的衣橱',
           }}
         />
         <Stack.Screen

@@ -37,6 +37,15 @@ export interface CategoryCount {
   icon: string;
 }
 
+// 分类筛选类型（用于浏览页）
+export type CategoryFilter = CategoryType | 'all';
+
+// 分页结果类型
+export interface PaginatedResult<T> {
+  items: T[];
+  hasMore: boolean;
+}
+
 // 导航参数类型
 export type RootStackParamList = {
   Home: undefined;
@@ -50,4 +59,7 @@ export type RootStackParamList = {
   ClothesDetail: {
     id: number;
   };
+  WardrobeBrowse: {
+    initialCategory?: CategoryType;
+  } | undefined;
 };
