@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONT_SIZE } from '../../constants/colors';
 
 interface HeaderSectionProps {
@@ -11,8 +12,10 @@ interface HeaderSectionProps {
 }
 
 export const HeaderSection: React.FC<HeaderSectionProps> = ({ totalCount }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + SPACING.md }]}>
       <Text style={styles.title}>我的衣橱</Text>
       <Text style={styles.subtitle}>
         共 <Text style={styles.count}>{totalCount}</Text> 件衣服
