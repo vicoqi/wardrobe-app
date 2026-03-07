@@ -9,7 +9,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import { RootStackParamList, CategoryType, ClothesItem } from '../types';
 import { COLORS, SPACING } from '../constants/colors';
-import { getCategoryConfig } from '../constants/categories';
 import { HeaderSection } from '../components/home/HeaderSection';
 import { QuickAddSection } from '../components/home/QuickAddSection';
 import { CategorySection } from '../components/home/CategorySection';
@@ -46,10 +45,8 @@ export const HomeScreen: React.FC = () => {
 
   // 点击分类
   const handleCategoryPress = (category: CategoryType) => {
-    const config = getCategoryConfig(category);
-    navigation.navigate('CategoryDetail', {
-      category,
-      title: config.label,
+    navigation.navigate('WardrobeBrowse', {
+      initialCategory: category,
     });
   };
 

@@ -2,9 +2,9 @@
  * 导航配置
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../types';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -14,13 +14,17 @@ import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// 占位页面组件 - 分类详情页面
-const CategoryDetailScreen: React.FC = () => {
-  return (
-    <React.Fragment>
-      {/* 占位页面，后续实现 */}
-    </React.Fragment>
-  );
+type CategoryDetailProps = NativeStackScreenProps<RootStackParamList, 'CategoryDetail'>;
+
+// 分类详情页兼容入口：转发到已实现的浏览页
+const CategoryDetailScreen: React.FC<CategoryDetailProps> = ({ navigation, route }) => {
+  useEffect(() => {
+    navigation.replace('WardrobeBrowse', {
+      initialCategory: route.params.category,
+    });
+  }, [navigation, route.params.category]);
+
+  return null;
 };
 
 // 占位页面组件 - 衣服详情页面
