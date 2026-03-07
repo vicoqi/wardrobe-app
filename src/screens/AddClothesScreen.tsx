@@ -2,7 +2,7 @@
  * 添加衣服页面
  */
 
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -33,6 +33,7 @@ type AddClothesRouteProp = RouteProp<RootStackParamList, 'AddClothes'>;
 
 interface State {
   imageUri: string | null;
+  name: string;
   category: CategoryType | null;
   seasons: SeasonType[];
   color: string;
@@ -48,6 +49,7 @@ export const AddClothesScreen: React.FC = () => {
 
   const [state, setState] = useState<State>({
     imageUri: route.params?.imageUri ?? null,
+    name: '',
     category: null,
     seasons: [],
     color: '',
@@ -91,6 +93,10 @@ export const AddClothesScreen: React.FC = () => {
   // 处理备注变更
   const handleNotesChange = (notes: string) => {
     setState((prev) => ({ ...prev, notes }));
+  };
+
+  const handleNameChange = (name: string) => {
+    setState((prev) => ({ ...prev, name }));
   };
 
   const handleColorChange = (color: string) => {
@@ -138,6 +144,7 @@ export const AddClothesScreen: React.FC = () => {
     try {
       await addClothes({
         imageUri: state.imageUri!,
+        name: state.name.trim() || undefined,
         category: state.category!,
         season: state.seasons.length > 0 ? state.seasons : undefined,
         color: state.color.trim() || undefined,
@@ -154,6 +161,23 @@ export const AddClothesScreen: React.FC = () => {
       setState((prev) => ({ ...prev, saving: false }));
     }
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={state.saving}
+          activeOpacity={0.7}
+          style={styles.headerSaveButton}
+        >
+          <Text style={styles.headerSaveButtonText}>
+            {state.saving ? '保存中' : '保存'}
+          </Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, state.saving, state.imageUri, state.name, state.category, state.seasons, state.color, state.brand, state.price, state.notes]);
 
   return (
     <KeyboardAvoidingView
@@ -175,6 +199,20 @@ export const AddClothesScreen: React.FC = () => {
             onCameraPress={handleCameraPress}
             onAlbumPress={handleAlbumPress}
           />
+        </View>
+
+        {/* 分类选择 */}
+        <View style={styles.section}>
+          <View style={styles.extraInfoContainer}>
+            <Text style={styles.extraInfoTitle}>衣服名称（可选）</Text>
+            <TextInput
+              style={styles.textInput}
+              value={state.name}
+              onChangeText={handleNameChange}
+              placeholder="例如：白色T恤"
+              placeholderTextColor={COLORS.textTertiary}
+            />
+          </View>
         </View>
 
         {/* 分类选择 */}
@@ -307,6 +345,15 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: COLORS.textWhite,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerSaveButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+  },
+  headerSaveButtonText: {
+    color: COLORS.primaryDark,
     fontSize: 16,
     fontWeight: '600',
   },

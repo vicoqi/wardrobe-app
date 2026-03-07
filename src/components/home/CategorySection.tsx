@@ -3,10 +3,10 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { CategoryType, CategoryCount } from '../../types';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS, SHADOWS } from '../../constants/colors';
-import { getCategoryConfig, HOME_CATEGORIES } from '../../constants/categories';
+import { CATEGORY_CONFIGS } from '../../constants/categories';
 
 interface CategorySectionProps {
   categoryCounts: CategoryCount[];
@@ -17,33 +17,32 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   categoryCounts,
   onCategoryPress,
 }) => {
-  // 获取首页显示的分类
-  const homeCategories = HOME_CATEGORIES.map((type) => {
-    const count = categoryCounts.find((c) => c.category === type);
-    return {
-      type,
-      config: getCategoryConfig(type),
-      count: count?.count ?? 0,
-    };
+  const allCategories = CATEGORY_CONFIGS.map((config) => {
+    const count = categoryCounts.find((item) => item.category === config.type);
+    return { ...config, count: count?.count ?? 0 };
   });
 
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>分类浏览</Text>
-      <View style={styles.grid}>
-        {homeCategories.map((item) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.horizontalList}
+      >
+        {allCategories.map((item) => (
           <TouchableOpacity
             key={item.type}
-            style={[styles.card, { borderLeftColor: item.config.color }]}
+            style={[styles.card, { borderLeftColor: item.color }]}
             onPress={() => onCategoryPress(item.type)}
             activeOpacity={0.7}
           >
-            <Text style={styles.cardIcon}>{item.config.icon}</Text>
-            <Text style={styles.cardLabel}>{item.config.label}</Text>
+            <Text style={styles.cardIcon}>{item.icon}</Text>
+            <Text style={styles.cardLabel}>{item.label}</Text>
             <Text style={styles.cardCount}>{item.count} 件</Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -59,19 +58,16 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     marginBottom: SPACING.md,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.md,
+  horizontalList: {
+    paddingRight: SPACING.sm,
   },
   card: {
-    flex: 1,
-    minWidth: '45%',
+    width: 120,
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     borderLeftWidth: 4,
-    marginBottom: SPACING.md,
+    marginRight: SPACING.md,
     ...SHADOWS.small,
   },
   cardIcon: {
