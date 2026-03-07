@@ -3,19 +3,25 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONT_SIZE } from '../../constants/colors';
 
 interface HeaderSectionProps {
   totalCount: number;
+  onMenuPress: () => void;
 }
 
-export const HeaderSection: React.FC<HeaderSectionProps> = ({ totalCount }) => {
+export const HeaderSection: React.FC<HeaderSectionProps> = ({ totalCount, onMenuPress }) => {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + SPACING.md }]}>
+      {/* 菜单按钮 */}
+      <TouchableOpacity style={styles.menuButton} onPress={onMenuPress}>
+        <Text style={styles.menuIcon}>☰</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>我的衣橱</Text>
       <Text style={styles.subtitle}>
         共 <Text style={styles.count}>{totalCount}</Text> 件衣服
@@ -29,6 +35,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.xl,
     paddingBottom: SPACING.md,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  menuIcon: {
+    fontSize: 22,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   title: {
     fontSize: FONT_SIZE.xxxl,

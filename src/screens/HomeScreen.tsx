@@ -2,7 +2,7 @@
  * 首页主组件
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator, Text } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import { HeaderSection } from '../components/home/HeaderSection';
 import { QuickAddSection } from '../components/home/QuickAddSection';
 import { CategorySection } from '../components/home/CategorySection';
 import { RecentItemsSection } from '../components/home/RecentItemsSection';
+import { Sidebar } from '../components/common/Sidebar';
 import { useHomeData } from '../hooks/useHomeData';
 import { pickImageFromCamera, pickImageFromAlbum } from '../utils/imageUtils';
 
@@ -21,6 +22,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { totalCount, categoryCounts, recentItems, isLoading, error } = useHomeData();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // 添加新衣服
   const handleAddPress = () => {
@@ -72,33 +74,44 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* 顶部标题区 */}
-      <HeaderSection totalCount={totalCount} />
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 顶部标题区 */}
+        <HeaderSection
+          totalCount={totalCount}
+          onMenuPress={() => setSidebarVisible(true)}
+        />
 
-      {/* 快速添加区 */}
-      <QuickAddSection
-        onAddPress={handleAddPress}
-        onCameraPress={handleCameraPress}
-        onAlbumPress={handleAlbumPress}
+        {/* 快速添加区 */}
+        <QuickAddSection
+          onAddPress={handleAddPress}
+          onCameraPress={handleCameraPress}
+          onAlbumPress={handleAlbumPress}
+        />
+
+        {/* 分类入口区 */}
+        <CategorySection
+          categoryCounts={categoryCounts}
+          onCategoryPress={handleCategoryPress}
+        />
+
+        {/* 最近添加区 */}
+        <RecentItemsSection items={recentItems} onItemPress={handleItemPress} />
+
+        {/* 底部留白 */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+
+      {/* 侧边栏 */}
+      <Sidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
       />
-
-      {/* 分类入口区 */}
-      <CategorySection
-        categoryCounts={categoryCounts}
-        onCategoryPress={handleCategoryPress}
-      />
-
-      {/* 最近添加区 */}
-      <RecentItemsSection items={recentItems} onItemPress={handleItemPress} />
-
-      {/* 底部留白 */}
-      <View style={styles.bottomSpacer} />
-    </ScrollView>
+    </>
   );
 };
 
