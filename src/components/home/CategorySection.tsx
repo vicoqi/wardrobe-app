@@ -21,6 +21,10 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
     const count = categoryCounts.find((item) => item.category === config.type);
     return { ...config, count: count?.count ?? 0 };
   });
+  const categoryColumns = [];
+  for (let i = 0; i < allCategories.length; i += 2) {
+    categoryColumns.push(allCategories.slice(i, i + 2));
+  }
 
   return (
     <View style={styles.container}>
@@ -30,17 +34,21 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.horizontalList}
       >
-        {allCategories.map((item) => (
-          <TouchableOpacity
-            key={item.type}
-            style={[styles.card, { borderLeftColor: item.color }]}
-            onPress={() => onCategoryPress(item.type)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cardIcon}>{item.icon}</Text>
-            <Text style={styles.cardLabel}>{item.label}</Text>
-            <Text style={styles.cardCount}>{item.count} 件</Text>
-          </TouchableOpacity>
+        {categoryColumns.map((column, columnIndex) => (
+          <View key={`column-${columnIndex}`} style={styles.column}>
+            {column.map((item) => (
+              <TouchableOpacity
+                key={item.type}
+                style={[styles.card, { borderLeftColor: item.color }]}
+                onPress={() => onCategoryPress(item.type)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cardIcon}>{item.icon}</Text>
+                <Text style={styles.cardLabel}>{item.label}</Text>
+                <Text style={styles.cardCount}>{item.count} 件</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -61,13 +69,17 @@ const styles = StyleSheet.create({
   horizontalList: {
     paddingRight: SPACING.sm,
   },
+  column: {
+    width: 140,
+    marginRight: SPACING.md,
+    gap: SPACING.md,
+  },
   card: {
-    width: 120,
+    flex: 1,
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     borderLeftWidth: 4,
-    marginRight: SPACING.md,
     ...SHADOWS.small,
   },
   cardIcon: {
