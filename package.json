@@ -27,6 +27,7 @@
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
+    "babel-preset-expo": "^54.0.10",
     "typescript": "~5.9.2"
   },
   "private": true
