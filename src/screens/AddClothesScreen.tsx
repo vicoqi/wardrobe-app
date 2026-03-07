@@ -191,7 +191,12 @@ export const AddClothesScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* 图片预览 */}
-        <ImagePreview imageUri={state.imageUri} />
+        <ImagePreview
+          imageUri={state.imageUri}
+          onPlaceholderPress={() => {
+            void handleCameraPress();
+          }}
+        />
 
         {/* 操作按钮 */}
         <View style={styles.section}>

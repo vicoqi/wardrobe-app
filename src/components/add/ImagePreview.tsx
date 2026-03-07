@@ -3,14 +3,18 @@
  */
 
 import React from 'react';
-import { View, Image, Text, StyleSheet } from 'react-native';
+import { View, Image, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/colors';
 
 interface ImagePreviewProps {
   imageUri: string | null;
+  onPlaceholderPress?: () => void;
 }
 
-export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUri }) => {
+export const ImagePreview: React.FC<ImagePreviewProps> = ({
+  imageUri,
+  onPlaceholderPress,
+}) => {
   if (imageUri) {
     return (
       <View style={styles.container}>
@@ -20,10 +24,16 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUri }) => {
   }
 
   return (
-    <View style={styles.placeholder}>
+    <TouchableOpacity
+      style={styles.placeholder}
+      onPress={onPlaceholderPress}
+      activeOpacity={0.75}
+      disabled={!onPlaceholderPress}
+    >
       <Text style={styles.placeholderIcon}>📷</Text>
-      <Text style={styles.placeholderText}>点击下方按钮添加图片</Text>
-    </View>
+      <Text style={styles.placeholderText}>点击相机图标直接拍照</Text>
+      <Text style={styles.placeholderHint}>或使用下方按钮</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -57,6 +67,11 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  placeholderHint: {
+    fontSize: 12,
     color: COLORS.textTertiary,
   },
 });
