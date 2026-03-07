@@ -2,7 +2,7 @@
  * 添加衣服页面
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -10,8 +10,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TextInput,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
-import { useNavigation, useRoute, useFocusEffect, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { RootStackParamList, CategoryType, SeasonType } from '../types';
@@ -24,7 +27,6 @@ import { ActionButtons } from '../components/add/ActionButtons';
 import { CategorySelector } from '../components/add/CategorySelector';
 import { SeasonSelector } from '../components/add/SeasonSelector';
 import { NotesInput } from '../components/add/NotesInput';
-import { TouchableOpacity, Text } from 'react-native';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddClothes'>;
 type AddClothesRouteProp = RouteProp<RootStackParamList, 'AddClothes'>;
@@ -33,6 +35,9 @@ interface State {
   imageUri: string | null;
   category: CategoryType | null;
   seasons: SeasonType[];
+  color: string;
+  brand: string;
+  price: string;
   notes: string;
   saving: boolean;
 }
@@ -45,6 +50,9 @@ export const AddClothesScreen: React.FC = () => {
     imageUri: route.params?.imageUri ?? null,
     category: null,
     seasons: [],
+    color: '',
+    brand: '',
+    price: '',
     notes: '',
     saving: false,
   });
@@ -85,6 +93,18 @@ export const AddClothesScreen: React.FC = () => {
     setState((prev) => ({ ...prev, notes }));
   };
 
+  const handleColorChange = (color: string) => {
+    setState((prev) => ({ ...prev, color }));
+  };
+
+  const handleBrandChange = (brand: string) => {
+    setState((prev) => ({ ...prev, brand }));
+  };
+
+  const handlePriceChange = (price: string) => {
+    setState((prev) => ({ ...prev, price }));
+  };
+
   // 验证表单
   const validateForm = (): boolean => {
     if (!state.imageUri) {
@@ -102,6 +122,17 @@ export const AddClothesScreen: React.FC = () => {
   const handleSave = async () => {
     if (!validateForm()) return;
 
+    const trimmedPrice = state.price.trim();
+    let parsedPrice: number | null = null;
+    if (trimmedPrice.length > 0) {
+      const numericPrice = Number(trimmedPrice);
+      if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+        Alert.alert('提示', '价格请输入有效数字');
+        return;
+      }
+      parsedPrice = numericPrice;
+    }
+
     setState((prev) => ({ ...prev, saving: true }));
 
     try {
@@ -109,6 +140,9 @@ export const AddClothesScreen: React.FC = () => {
         imageUri: state.imageUri!,
         category: state.category!,
         season: state.seasons.length > 0 ? state.seasons : undefined,
+        color: state.color.trim() || undefined,
+        brand: state.brand.trim() || undefined,
+        price: parsedPrice,
         notes: state.notes || undefined,
       });
 
@@ -159,6 +193,35 @@ export const AddClothesScreen: React.FC = () => {
           />
         </View>
 
+        {/* 额外信息 */}
+        <View style={styles.section}>
+          <View style={styles.extraInfoContainer}>
+            <Text style={styles.extraInfoTitle}>更多信息（可选）</Text>
+            <TextInput
+              style={styles.textInput}
+              value={state.color}
+              onChangeText={handleColorChange}
+              placeholder="颜色，例如：白色"
+              placeholderTextColor={COLORS.textTertiary}
+            />
+            <TextInput
+              style={styles.textInput}
+              value={state.brand}
+              onChangeText={handleBrandChange}
+              placeholder="品牌，例如：UNIQLO"
+              placeholderTextColor={COLORS.textTertiary}
+            />
+            <TextInput
+              style={styles.textInput}
+              value={state.price}
+              onChangeText={handlePriceChange}
+              placeholder="价格，例如：99"
+              placeholderTextColor={COLORS.textTertiary}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        </View>
+
         {/* 备注 */}
         <View style={styles.section}>
           <NotesInput
@@ -207,6 +270,24 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: SPACING.xl,
+  },
+  extraInfoContainer: {
+    gap: SPACING.sm,
+  },
+  extraInfoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  textInput: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm + 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    fontSize: 15,
+    color: COLORS.textPrimary,
   },
   footer: {
     padding: SPACING.lg,

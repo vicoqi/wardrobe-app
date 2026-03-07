@@ -46,7 +46,7 @@ export const getCategoryCounts = async (): Promise<CategoryCount[]> => {
 export const getRecentItems = async (limit: number = 4): Promise<ClothesItem[]> => {
   const db = await getDatabase();
   const results = await db.getAllAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes ORDER BY created_at DESC LIMIT ?',
+    'SELECT id, name, category, image_uri, season, color, brand, price, notes, created_at, updated_at FROM clothes ORDER BY created_at DESC LIMIT ?',
     [limit]
   );
   return results;
@@ -61,8 +61,19 @@ export const addClothes = async (params: AddClothesParams): Promise<number> => {
   const season = (params.season ?? []).join(',');
 
   const result = await db.runAsync(
-    'INSERT INTO clothes (name, category, image_uri, season, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [params.name ?? '', params.category, params.imageUri, season, params.notes ?? '', now, now]
+    'INSERT INTO clothes (name, category, image_uri, season, color, brand, price, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      params.name ?? '',
+      params.category,
+      params.imageUri,
+      season,
+      params.color?.trim() ?? '',
+      params.brand?.trim() ?? '',
+      params.price ?? null,
+      params.notes ?? '',
+      now,
+      now,
+    ]
   );
 
   return result.lastInsertRowId;
@@ -74,7 +85,7 @@ export const addClothes = async (params: AddClothesParams): Promise<number> => {
 export const getClothesById = async (id: number): Promise<ClothesItem | null> => {
   const db = await getDatabase();
   const result = await db.getFirstAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes WHERE id = ?',
+    'SELECT id, name, category, image_uri, season, color, brand, price, notes, created_at, updated_at FROM clothes WHERE id = ?',
     [id]
   );
   return result ?? null;
@@ -88,7 +99,7 @@ export const getClothesByCategory = async (
 ): Promise<ClothesItem[]> => {
   const db = await getDatabase();
   const results = await db.getAllAsync<ClothesItem>(
-    'SELECT id, name, category, image_uri, season, notes, created_at, updated_at FROM clothes WHERE category = ? ORDER BY created_at DESC',
+    'SELECT id, name, category, image_uri, season, color, brand, price, notes, created_at, updated_at FROM clothes WHERE category = ? ORDER BY created_at DESC',
     [category]
   );
   return results;
@@ -107,7 +118,15 @@ export const deleteClothes = async (id: number): Promise<void> => {
  */
 export const updateClothes = async (
   id: number,
-  updates: { name?: string; category?: CategoryType; season?: SeasonType[]; notes?: string }
+  updates: {
+    name?: string;
+    category?: CategoryType;
+    season?: SeasonType[];
+    color?: string;
+    brand?: string;
+    price?: number | null;
+    notes?: string;
+  }
 ): Promise<void> => {
   const db = await getDatabase();
   const now = Date.now();
@@ -139,6 +158,27 @@ export const updateClothes = async (
       [updates.notes, now, id]
     );
   }
+
+  if (updates.color !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET color = ?, updated_at = ? WHERE id = ?',
+      [updates.color, now, id]
+    );
+  }
+
+  if (updates.brand !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET brand = ?, updated_at = ? WHERE id = ?',
+      [updates.brand, now, id]
+    );
+  }
+
+  if (updates.price !== undefined) {
+    await db.runAsync(
+      'UPDATE clothes SET price = ?, updated_at = ? WHERE id = ?',
+      [updates.price, now, id]
+    );
+  }
 };
 
 /**
@@ -165,9 +205,9 @@ export const getClothesPaginated = async (params: {
 
   // 搜索关键词（在 name 和 notes 中搜索）
   if (searchKeyword && searchKeyword.trim()) {
-    conditions.push('(name LIKE ? OR notes LIKE ?)');
+    conditions.push('(name LIKE ? OR notes LIKE ? OR color LIKE ? OR brand LIKE ?)');
     const keyword = `%${searchKeyword.trim()}%`;
-    sqlParams.push(keyword, keyword);
+    sqlParams.push(keyword, keyword, keyword, keyword);
   }
 
   const whereClause = conditions.join(' AND ');
@@ -175,7 +215,7 @@ export const getClothesPaginated = async (params: {
 
   // 查询 pageSize + 1 条数据来判断是否还有更多
   const results = await db.getAllAsync<ClothesItem>(
-    `SELECT id, name, category, image_uri, season, notes, created_at, updated_at
+    `SELECT id, name, category, image_uri, season, color, brand, price, notes, created_at, updated_at
      FROM clothes
      WHERE ${whereClause}
      ORDER BY created_at DESC

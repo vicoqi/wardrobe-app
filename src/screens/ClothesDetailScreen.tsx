@@ -32,6 +32,9 @@ interface EditState {
   name: string;
   category: CategoryType;
   seasons: SeasonType[];
+  color: string;
+  brand: string;
+  priceInput: string;
   notes: string;
 }
 
@@ -62,6 +65,13 @@ const formatDateTime = (timestamp: number): string => {
   const hours = `${date.getHours()}`.padStart(2, '0');
   const minutes = `${date.getMinutes()}`.padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+const formatPrice = (price: number | null | undefined): string => {
+  if (price === null || price === undefined) {
+    return '未设置';
+  }
+  return `¥${Number(price).toString()}`;
 };
 
 interface MetaItemProps {
@@ -128,6 +138,32 @@ export const ClothesDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     return source.map((season) => getSeasonConfig(season).label).join('');
   }, [clothes?.season, editState, editing]);
 
+  const colorText = useMemo(() => {
+    if (editing && editState) {
+      return editState.color.trim() || '未设置';
+    }
+    return clothes?.color?.trim() || '未设置';
+  }, [clothes?.color, editState, editing]);
+
+  const brandText = useMemo(() => {
+    if (editing && editState) {
+      return editState.brand.trim() || '未设置';
+    }
+    return clothes?.brand?.trim() || '未设置';
+  }, [clothes?.brand, editState, editing]);
+
+  const priceText = useMemo(() => {
+    if (editing && editState) {
+      const trimmed = editState.priceInput.trim();
+      if (!trimmed) {
+        return '未设置';
+      }
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) ? formatPrice(parsed) : '未设置';
+    }
+    return formatPrice(clothes?.price);
+  }, [clothes?.price, editState, editing]);
+
   const displayName = useMemo(() => {
     if (editing && editState) {
       return editState.name;
@@ -146,6 +182,9 @@ export const ClothesDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       name: clothes.name,
       category: clothes.category,
       seasons: parseSeason(clothes.season),
+      color: clothes.color,
+      brand: clothes.brand,
+      priceInput: clothes.price === null ? '' : `${clothes.price}`,
       notes: clothes.notes,
     });
     setEditing(true);
@@ -161,12 +200,26 @@ export const ClothesDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
+    const trimmedPrice = editState.priceInput.trim();
+    let parsedPrice: number | null = null;
+    if (trimmedPrice.length > 0) {
+      const numericPrice = Number(trimmedPrice);
+      if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+        Alert.alert('提示', '价格请输入有效数字');
+        return;
+      }
+      parsedPrice = numericPrice;
+    }
+
     setSaving(true);
     try {
       await updateClothes(clothes.id, {
         name: editState.name.trim(),
         category: editState.category,
         season: editState.seasons,
+        color: editState.color.trim(),
+        brand: editState.brand.trim(),
+        price: parsedPrice,
         notes: editState.notes.trim(),
       });
       await loadDetail();
@@ -332,9 +385,9 @@ export const ClothesDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
           <View style={styles.metaGrid}>
             <MetaItem label="季节" value={seasonText} />
-            <MetaItem label="颜色" value="未设置" />
-            <MetaItem label="品牌" value="未设置" />
-            <MetaItem label="价格" value="未设置" />
+            <MetaItem label="颜色" value={colorText} />
+            <MetaItem label="品牌" value={brandText} />
+            <MetaItem label="价格" value={priceText} />
           </View>
 
           {editing && editState ? (
@@ -384,6 +437,37 @@ export const ClothesDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   );
                 })}
               </View>
+
+              <Text style={styles.editLabel}>颜色</Text>
+              <TextInput
+                value={editState.color}
+                onChangeText={(text) =>
+                  setEditState((prev) => (prev ? { ...prev, color: text } : prev))
+                }
+                placeholder="请输入颜色"
+                style={styles.editInput}
+              />
+
+              <Text style={styles.editLabel}>品牌</Text>
+              <TextInput
+                value={editState.brand}
+                onChangeText={(text) =>
+                  setEditState((prev) => (prev ? { ...prev, brand: text } : prev))
+                }
+                placeholder="请输入品牌"
+                style={styles.editInput}
+              />
+
+              <Text style={styles.editLabel}>价格</Text>
+              <TextInput
+                value={editState.priceInput}
+                onChangeText={(text) =>
+                  setEditState((prev) => (prev ? { ...prev, priceInput: text } : prev))
+                }
+                placeholder="请输入价格"
+                style={styles.editInput}
+                keyboardType="decimal-pad"
+              />
             </View>
           ) : null}
 
@@ -609,6 +693,16 @@ const styles = StyleSheet.create({
   editChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginBottom: SPACING.md,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    fontSize: FONT_SIZE.md,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.md,
   },
   chip: {

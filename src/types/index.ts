@@ -15,6 +15,9 @@ export interface ClothesItem {
   category: CategoryType;
   image_uri: string;
   season: string; // 逗号分隔的季节
+  color: string;
+  brand: string;
+  price: number | null;
   notes: string; // 备注
   created_at: number;
   updated_at: number;
@@ -25,6 +28,9 @@ export interface AddClothesParams {
   imageUri: string;
   category: CategoryType;
   season?: SeasonType[];
+  color?: string;
+  brand?: string;
+  price?: number | null;
   notes?: string;
   name?: string;
 }

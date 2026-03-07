@@ -5,69 +5,100 @@
 import { getDatabase } from './db';
 
 /**
- * 迁移数据库 - 添加 season 和 notes 字段
+ * 迁移数据库 - 补齐字段并保证数据完整保留
  */
 const migrateDatabase = async (): Promise<void> => {
   const db = await getDatabase();
 
-  // 检查 season 列是否存在
+  const requiredColumns = [
+    'id',
+    'name',
+    'category',
+    'image_uri',
+    'season',
+    'color',
+    'brand',
+    'price',
+    'notes',
+    'created_at',
+    'updated_at',
+  ] as const;
+
   const tableInfo = await db.getAllAsync<{ name: string }>(
     "PRAGMA table_info(clothes)"
   );
-  const hasSeason = tableInfo.some(col => col.name === 'season');
-  const hasNotes = tableInfo.some(col => col.name === 'notes');
+  const existingColumns = new Set(tableInfo.map((col) => col.name));
+  const missingColumns = requiredColumns.filter((column) => !existingColumns.has(column));
 
-  // 如果没有 season 列，需要重建表
-  if (!hasSeason || !hasNotes) {
-    await db.execAsync('BEGIN IMMEDIATE TRANSACTION;');
-    try {
-      // 创建新表
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS clothes_new (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL DEFAULT '',
-          category TEXT NOT NULL,
-          image_uri TEXT NOT NULL,
-          season TEXT NOT NULL DEFAULT '',
-          notes TEXT NOT NULL DEFAULT '',
-          created_at INTEGER NOT NULL,
-          updated_at INTEGER NOT NULL
-        );
-      `);
+  if (missingColumns.length === 0) {
+    return;
+  }
 
-      // 复制旧数据（根据现有列决定复制哪些数据）
-      if (!hasSeason && !hasNotes) {
-        await db.execAsync(`
-          INSERT INTO clothes_new (id, name, category, image_uri, season, notes, created_at, updated_at)
-          SELECT id, name, category, image_uri, '', '', created_at, updated_at FROM clothes;
-        `);
-      } else {
-        // 部分迁移（未来如果添加新字段时使用）
-        await db.execAsync(`
-          INSERT INTO clothes_new (id, name, category, image_uri, season, notes, created_at, updated_at)
-          SELECT id, name, category, image_uri,
-            COALESCE(season, ''),
-            COALESCE(notes, ''),
-            created_at, updated_at
-          FROM clothes;
-        `);
-      }
+  const hasSeason = existingColumns.has('season');
+  const hasColor = existingColumns.has('color');
+  const hasBrand = existingColumns.has('brand');
+  const hasPrice = existingColumns.has('price');
+  const hasNotes = existingColumns.has('notes');
 
-      // 删除旧表并原子切换到新表
-      await db.execAsync(`DROP TABLE clothes;`);
-      await db.execAsync(`ALTER TABLE clothes_new RENAME TO clothes;`);
+  await db.execAsync('BEGIN IMMEDIATE TRANSACTION;');
+  try {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS clothes_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL DEFAULT '',
+        category TEXT NOT NULL,
+        image_uri TEXT NOT NULL,
+        season TEXT NOT NULL DEFAULT '',
+        color TEXT NOT NULL DEFAULT '',
+        brand TEXT NOT NULL DEFAULT '',
+        price REAL,
+        notes TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+    `);
 
-      // 重建索引
-      await db.execAsync(`
-        CREATE INDEX IF NOT EXISTS idx_clothes_category ON clothes(category);
-        CREATE INDEX IF NOT EXISTS idx_clothes_created_at ON clothes(created_at DESC);
-      `);
+    await db.execAsync(`
+      INSERT INTO clothes_new (
+        id,
+        name,
+        category,
+        image_uri,
+        season,
+        color,
+        brand,
+        price,
+        notes,
+        created_at,
+        updated_at
+      )
+      SELECT
+        id,
+        name,
+        category,
+        image_uri,
+        ${hasSeason ? "COALESCE(season, '')" : "''"},
+        ${hasColor ? "COALESCE(color, '')" : "''"},
+        ${hasBrand ? "COALESCE(brand, '')" : "''"},
+        ${hasPrice ? 'price' : 'NULL'},
+        ${hasNotes ? "COALESCE(notes, '')" : "''"},
+        created_at,
+        updated_at
+      FROM clothes;
+    `);
 
-      await db.execAsync('COMMIT;');
-    } catch (error) {
-      await db.execAsync('ROLLBACK;');
-      throw error;
-    }
+    await db.execAsync('DROP TABLE clothes;');
+    await db.execAsync('ALTER TABLE clothes_new RENAME TO clothes;');
+
+    await db.execAsync(`
+      CREATE INDEX IF NOT EXISTS idx_clothes_category ON clothes(category);
+      CREATE INDEX IF NOT EXISTS idx_clothes_created_at ON clothes(created_at DESC);
+    `);
+
+    await db.execAsync('COMMIT;');
+  } catch (error) {
+    await db.execAsync('ROLLBACK;');
+    throw error;
   }
 };
 
@@ -85,6 +116,9 @@ export const initializeDatabase = async (): Promise<void> => {
       category TEXT NOT NULL,
       image_uri TEXT NOT NULL,
       season TEXT NOT NULL DEFAULT '',
+      color TEXT NOT NULL DEFAULT '',
+      brand TEXT NOT NULL DEFAULT '',
+      price REAL,
       notes TEXT NOT NULL DEFAULT '',
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
