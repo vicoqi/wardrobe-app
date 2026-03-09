@@ -1,0 +1,64 @@
+name: Android Build (EAS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - production
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run ts:check
+
+      - name: Build Android on EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Missing EXPO_TOKEN. Add it in GitHub: Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+          PROFILE="preview"
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            PROFILE="production"
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.profile }}" ]; then
+            PROFILE="${{ github.event.inputs.profile }}"
+          fi
+
+          echo "Using EAS profile: $PROFILE"
+          npx --yes eas-cli@latest build --platform android --profile "$PROFILE" --non-interactive --no-wait
