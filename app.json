@@ -21,7 +21,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFE5EC"
       },
-      "package": "com.wardrobe.app"
+      "package": "com.wardrobe.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -38,6 +41,12 @@
       "expo-sqlite",
       "expo-asset",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8915054f-d1de-476f-ac80-0201c0e99468"
+      }
+    },
+    "owner": "chipwat"
   }
 }

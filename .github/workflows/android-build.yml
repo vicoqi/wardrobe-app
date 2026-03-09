@@ -43,6 +43,32 @@ jobs:
       - name: Type check
         run: npm run ts:check
 
+      - name: Configure EAS project (non-interactive)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Missing EXPO_TOKEN. Add it in GitHub: Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+          HAS_PROJECT_ID=0
+          node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('app.json','utf8'));if(c?.expo?.extra?.eas?.projectId){process.exit(0)}process.exit(1)" || HAS_PROJECT_ID=1
+
+          if [ "$HAS_PROJECT_ID" -eq 0 ]; then
+            echo "EAS projectId already exists in app.json"
+          elif [ -n "$EXPO_PROJECT_ID" ]; then
+            echo "Linking EAS project by EXPO_PROJECT_ID..."
+            npx --yes eas-cli@latest init --non-interactive --id "$EXPO_PROJECT_ID"
+          else
+            echo "EAS project is not configured."
+            echo "Fix one of the following:"
+            echo "1) Run 'npx --yes eas-cli@latest init' locally once and commit app.json"
+            echo "2) Add GitHub Actions secret EXPO_PROJECT_ID and rerun"
+            exit 1
+          fi
+
       - name: Build Android on EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
