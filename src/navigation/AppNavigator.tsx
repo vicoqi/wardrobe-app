@@ -11,6 +11,8 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { AddClothesScreen } from '../screens/AddClothesScreen';
 import { WardrobeBrowseScreen } from '../screens/WardrobeBrowseScreen';
 import { ClothesDetailScreen } from '../screens/ClothesDetailScreen';
+import { CanvasScreen } from '../screens/CanvasScreen';
+import { OutfitListScreen } from '../screens/OutfitListScreen';
 import { COLORS } from '../constants/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -77,6 +79,20 @@ export const AppNavigator: React.FC = () => {
           component={ClothesDetailScreen}
           options={{
             headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Canvas"
+          component={CanvasScreen}
+          options={{
+            title: '灵感画布',
+          }}
+        />
+        <Stack.Screen
+          name="OutfitList"
+          component={OutfitListScreen}
+          options={{
+            title: '我的搭配',
           }}
         />
       </Stack.Navigator>

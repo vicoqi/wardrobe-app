@@ -73,3 +73,9 @@ export const createCategoryCount = (
     icon: config.icon,
   };
 };
+
+// 根据类型获取分类图标
+export const getCategoryIcon = (type: CategoryType): string => {
+  const config = getCategoryConfig(type);
+  return config.icon;
+};

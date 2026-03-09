@@ -2,6 +2,8 @@
  * 应用入口
  */
 
+import 'react-native-gesture-handler';
+
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

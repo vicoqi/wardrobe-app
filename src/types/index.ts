@@ -52,6 +52,33 @@ export interface PaginatedResult<T> {
   hasMore: boolean;
 }
 
+// 画布上衣服项的位置信息
+export interface CanvasItemPosition {
+  clothesId: number;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  zIndex: number;
+}
+
+// 搭配方案
+export interface Outfit {
+  id: number;
+  name: string;
+  thumbnail: string;
+  items: CanvasItemPosition[];
+  created_at: number;
+  updated_at: number;
+}
+
+// 保存搭配参数
+export interface SaveOutfitParams {
+  name?: string;
+  thumbnail: string;
+  items: CanvasItemPosition[];
+}
+
 // 导航参数类型
 export type RootStackParamList = {
   Home: undefined;
@@ -68,4 +95,6 @@ export type RootStackParamList = {
   WardrobeBrowse: {
     initialCategory?: CategoryType;
   } | undefined;
+  Canvas: undefined;
+  OutfitList: undefined;
 };

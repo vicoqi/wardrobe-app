@@ -126,6 +126,18 @@ export const initializeDatabase = async (): Promise<void> => {
 
     CREATE INDEX IF NOT EXISTS idx_clothes_category ON clothes(category);
     CREATE INDEX IF NOT EXISTS idx_clothes_created_at ON clothes(created_at DESC);
+
+    -- 搭配方案表
+    CREATE TABLE IF NOT EXISTS outfits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL DEFAULT '',
+      thumbnail TEXT NOT NULL,
+      items_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_outfits_created_at ON outfits(created_at DESC);
   `);
 
   // 执行迁移

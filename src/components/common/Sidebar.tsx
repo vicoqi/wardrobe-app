@@ -14,7 +14,10 @@ import {
   Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../../constants/colors';
+import { RootStackParamList } from '../../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SIDEBAR_WIDTH = SCREEN_WIDTH * 0.75;
@@ -26,6 +29,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const slideAnim = React.useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
 
   React.useEffect(() => {
@@ -43,6 +47,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
       }).start();
     }
   }, [visible]);
+
+  const handleNavigate = (screen: keyof RootStackParamList) => {
+    onClose();
+    // @ts-ignore - TypeScript has issues with dynamic navigation
+    navigation.navigate(screen);
+  };
 
   if (!visible) return null;
 
@@ -79,14 +89,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
 
               {/* 菜单项 */}
               <View style={styles.menuSection}>
-                <TouchableOpacity style={styles.menuItem}>
-                  <Text style={styles.menuIcon}>📊</Text>
-                  <Text style={styles.menuText}>衣橱统计</Text>
+                {/* 灵感画布 */}
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigate('Canvas')}
+                >
+                  <Text style={styles.menuIcon}>🎨</Text>
+                  <Text style={styles.menuText}>灵感画布</Text>
+                </TouchableOpacity>
+
+                {/* 我的搭配 */}
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigate('OutfitList')}
+                >
+                  <Text style={styles.menuIcon}>👗</Text>
+                  <Text style={styles.menuText}>我的搭配</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem}>
-                  <Text style={styles.menuIcon}>🎨</Text>
-                  <Text style={styles.menuText}>主题设置</Text>
+                  <Text style={styles.menuIcon}>📊</Text>
+                  <Text style={styles.menuText}>衣橱统计</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.menuItem}>

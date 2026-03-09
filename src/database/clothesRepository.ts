@@ -231,3 +231,14 @@ export const getClothesPaginated = async (params: {
     hasMore,
   };
 };
+
+/**
+ * 获取所有衣服
+ */
+export const getAllClothes = async (): Promise<ClothesItem[]> => {
+  const db = await getDatabase();
+  const results = await db.getAllAsync<ClothesItem>(
+    'SELECT id, name, category, image_uri, season, color, brand, price, notes, created_at, updated_at FROM clothes ORDER BY created_at DESC'
+  );
+  return results;
+};
