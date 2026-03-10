@@ -69,22 +69,86 @@ jobs:
             exit 1
           fi
 
-      - name: Build Android on EAS
+      - name: Resolve build profile
+        id: resolve_profile
+        run: |
+          PROFILE="preview"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.profile }}" ]; then
+            PROFILE="${{ github.event.inputs.profile }}"
+          elif [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            PROFILE="production"
+          elif [[ "${GITHUB_REF}" == refs/heads/main || "${GITHUB_REF}" == refs/heads/master ]]; then
+            PROFILE="preview"
+          fi
+
+          echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "Using EAS profile: $PROFILE"
+
+      - name: Build Android on EAS (wait)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PROFILE: ${{ steps.resolve_profile.outputs.profile }}
         run: |
           if [ -z "$EXPO_TOKEN" ]; then
             echo "Missing EXPO_TOKEN. Add it in GitHub: Settings -> Secrets and variables -> Actions."
             exit 1
           fi
 
-          PROFILE="preview"
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            PROFILE="production"
-          fi
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.profile }}" ]; then
-            PROFILE="${{ github.event.inputs.profile }}"
-          fi
+          npx --yes eas-cli@latest build --platform android --profile "$PROFILE" --non-interactive --wait --json > eas-build.json
 
-          echo "Using EAS profile: $PROFILE"
-          npx --yes eas-cli@latest build --platform android --profile "$PROFILE" --non-interactive --no-wait
+      - name: Resolve artifact info
+        id: artifact
+        env:
+          PROFILE: ${{ steps.resolve_profile.outputs.profile }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const raw = fs.readFileSync('eas-build.json', 'utf8').trim();
+          let data;
+          try {
+            data = JSON.parse(raw);
+          } catch {
+            const lines = raw.split('\n').map((line) => line.trim()).filter(Boolean);
+            let parsed = null;
+            for (let i = lines.length - 1; i >= 0; i -= 1) {
+              try {
+                parsed = JSON.parse(lines[i]);
+                break;
+              } catch {}
+            }
+            if (!parsed) {
+              throw new Error('Cannot parse eas-build.json');
+            }
+            data = parsed;
+          }
+
+          const build = Array.isArray(data) ? data[data.length - 1] : data;
+          const artifacts = build?.artifacts ?? {};
+          const artifactUrl =
+            artifacts.applicationArchiveUrl ||
+            artifacts.buildUrl ||
+            artifacts.url;
+
+          if (!artifactUrl) {
+            throw new Error('No artifact URL found in EAS build output.');
+          }
+
+          const fromUrl = (artifactUrl.split('?')[0].match(/\.([a-z0-9]+)$/i) || [])[1];
+          const ext = fromUrl || (process.env.PROFILE === 'production' ? 'aab' : 'apk');
+          const fileName = `android-${process.env.PROFILE}.${ext}`;
+
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `artifact_url=${artifactUrl}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `artifact_file=${fileName}\n`);
+          NODE
+
+      - name: Download Android artifact
+        run: curl -L "${{ steps.artifact.outputs.artifact_url }}" -o "${{ steps.artifact.outputs.artifact_file }}"
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ steps.resolve_profile.outputs.profile }}-${{ github.run_number }}
+          path: ${{ steps.artifact.outputs.artifact_file }}
+          if-no-files-found: error
