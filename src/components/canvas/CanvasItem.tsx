@@ -61,6 +61,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
 
   // 拖拽手势
   const dragGesture = Gesture.Pan()
+    .minDistance(2)
     .onStart(() => {
       runOnJS(onSelect)(item.clothesId);
     })
@@ -81,10 +82,12 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       savedTranslateX.value = boundedX;
       savedTranslateY.value = boundedY;
 
-      runOnJS(onCommitUpdate)(item.clothesId, {
-        x: boundedX,
-        y: boundedY,
-      });
+      if (Number.isFinite(boundedX) && Number.isFinite(boundedY)) {
+        runOnJS(onCommitUpdate)(item.clothesId, {
+          x: boundedX,
+          y: boundedY,
+        });
+      }
     });
 
   // 缩放手势
@@ -117,10 +120,19 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       runOnJS(onCommitUpdate)(item.clothesId, { rotation: rotation.value });
     });
 
+  // 轻点选中
+  const tapGesture = Gesture.Tap().onEnd((_e, success) => {
+    if (success) {
+      runOnJS(onSelect)(item.clothesId);
+    }
+  });
+
   // 长按删除
   const longPressGesture = Gesture.LongPress()
-    .minDuration(500)
-    .onStart(() => {
+    .minDuration(700)
+    .maxDistance(10)
+    .onEnd((_e, success) => {
+      if (!success) return;
       runOnJS(onSelect)(item.clothesId);
       runOnJS(onLongPress)(item.clothesId);
     });
@@ -130,7 +142,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
     dragGesture,
     Gesture.Simultaneous(pinchGesture, rotationGesture)
   );
-  const composedGesture = Gesture.Race(longPressGesture, transformGesture);
+  const composedGesture = Gesture.Race(longPressGesture, transformGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

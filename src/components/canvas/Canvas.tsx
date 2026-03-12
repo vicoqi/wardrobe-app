@@ -67,7 +67,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       ref={canvasRef}
       style={styles.container}
       collapsable={false}
-      onTouchStart={() => setSelectedId(null)}
     >
       {items.map((item) => {
         const clothes = clothesMap.get(item.clothesId);
