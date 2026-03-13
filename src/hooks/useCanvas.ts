@@ -5,6 +5,11 @@
 import { useState, useRef, useCallback } from 'react';
 import { CanvasItemPosition, ClothesItem } from '../types';
 import { saveOutfit as saveOutfitToDb } from '../database/outfitRepository';
+import {
+  getNextCanvasItemId,
+  getNextCanvasZIndex,
+  normalizeCanvasItems,
+} from '../utils/canvasItems';
 
 const MAX_HISTORY = 50;
 
@@ -15,6 +20,8 @@ export const useCanvas = () => {
   // 历史记录（用于撤销/重做）
   const historyRef = useRef<CanvasItemPosition[][]>([[]]);
   const historyIndexRef = useRef(0);
+  const nextItemIdRef = useRef(1);
+  const nextZIndexRef = useRef(1);
 
   /**
    * 保存当前状态到历史记录
@@ -45,12 +52,13 @@ export const useCanvas = () => {
   const addItem = useCallback((clothes: ClothesItem) => {
     setCanvasItems((prev) => {
       const newItem: CanvasItemPosition = {
+        itemId: nextItemIdRef.current++,
         clothesId: clothes.id,
         x: 100 + Math.random() * 100, // 随机初始位置
         y: 100 + Math.random() * 100,
         scale: 1,
         rotation: 0,
-        zIndex: prev.length + 1,
+        zIndex: nextZIndexRef.current++,
       };
       const newItems = [...prev, newItem];
       saveToHistory(newItems);
@@ -62,9 +70,9 @@ export const useCanvas = () => {
    * 提交位置更新到历史记录（拖拽结束时调用）
    */
   const commitPositionUpdate = useCallback(
-    (clothesId: number, updates: Partial<CanvasItemPosition>) => {
+    (itemId: number, updates: Partial<CanvasItemPosition>) => {
       setCanvasItems((prev) => {
-        const target = prev.find((item) => item.clothesId === clothesId);
+        const target = prev.find((item) => item.itemId === itemId);
         if (!target) return prev;
 
         const hasChanged = Object.entries(updates).some(([key, value]) => {
@@ -74,7 +82,7 @@ export const useCanvas = () => {
         if (!hasChanged) return prev;
 
         const newItems = prev.map((item) =>
-          item.clothesId === clothesId ? { ...item, ...updates } : item
+          item.itemId === itemId ? { ...item, ...updates } : item
         );
         saveToHistory(newItems);
         return newItems;
@@ -84,11 +92,39 @@ export const useCanvas = () => {
   );
 
   /**
+   * 将选中的衣服提升到最上层
+   */
+  const bringItemToFront = useCallback((itemId: number) => {
+    setCanvasItems((prev) => {
+      const target = prev.find((item) => item.itemId === itemId);
+      if (!target) return prev;
+
+      const highestZIndex = prev.reduce(
+        (maxZIndex, item) => Math.max(maxZIndex, item.zIndex),
+        0
+      );
+
+      if (target.zIndex === highestZIndex) {
+        return prev;
+      }
+
+      const newZIndex = highestZIndex + 1;
+      nextZIndexRef.current = Math.max(nextZIndexRef.current, newZIndex + 1);
+
+      const newItems = prev.map((item) =>
+        item.itemId === itemId ? { ...item, zIndex: newZIndex } : item
+      );
+      saveToHistory(newItems);
+      return newItems;
+    });
+  }, [saveToHistory]);
+
+  /**
    * 删除衣服
    */
-  const removeItem = useCallback((clothesId: number) => {
+  const removeItem = useCallback((itemId: number) => {
     setCanvasItems((prev) => {
-      const newItems = prev.filter((item) => item.clothesId !== clothesId);
+      const newItems = prev.filter((item) => item.itemId !== itemId);
       saveToHistory(newItems);
       return newItems;
     });
@@ -162,10 +198,13 @@ export const useCanvas = () => {
    * 加载已保存的搭配
    */
   const loadOutfit = useCallback((items: CanvasItemPosition[]) => {
-    setCanvasItems(items);
+    const normalizedItems = normalizeCanvasItems(items);
+    setCanvasItems(normalizedItems);
     historyRef.current = [[]];
     historyIndexRef.current = 0;
-    saveToHistory(items);
+    nextItemIdRef.current = getNextCanvasItemId(normalizedItems);
+    nextZIndexRef.current = getNextCanvasZIndex(normalizedItems);
+    saveToHistory(normalizedItems);
   }, [saveToHistory]);
 
   return {
@@ -173,6 +212,7 @@ export const useCanvas = () => {
     isSaving,
     addItem,
     commitPositionUpdate,
+    bringItemToFront,
     removeItem,
     clearCanvas,
     undo,

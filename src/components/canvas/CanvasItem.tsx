@@ -24,9 +24,9 @@ const MAX_SCALE = 2.5;
 interface CanvasItemProps {
   item: CanvasItemPosition;
   imageUri: string;
-  onCommitUpdate: (clothesId: number, updates: Partial<CanvasItemPosition>) => void;
-  onSelect: (clothesId: number) => void;
-  onLongPress: (clothesId: number) => void;
+  onCommitUpdate: (itemId: number, updates: Partial<CanvasItemPosition>) => void;
+  onSelect: (itemId: number) => void;
+  onLongPress: (itemId: number) => void;
   isSelected: boolean;
 }
 
@@ -63,7 +63,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
   const dragGesture = Gesture.Pan()
     .minDistance(2)
     .onStart(() => {
-      runOnJS(onSelect)(item.clothesId);
+      runOnJS(onSelect)(item.itemId);
     })
     .onUpdate((e) => {
       translateX.value = savedTranslateX.value + e.translationX;
@@ -83,7 +83,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       savedTranslateY.value = boundedY;
 
       if (Number.isFinite(boundedX) && Number.isFinite(boundedY)) {
-        runOnJS(onCommitUpdate)(item.clothesId, {
+        runOnJS(onCommitUpdate)(item.itemId, {
           x: boundedX,
           y: boundedY,
         });
@@ -93,7 +93,7 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
   // 缩放手势
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      runOnJS(onSelect)(item.clothesId);
+      runOnJS(onSelect)(item.itemId);
     })
     .onUpdate((e) => {
       const newScale = Math.min(
@@ -104,26 +104,26 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
     })
     .onEnd(() => {
       savedScale.value = scale.value;
-      runOnJS(onCommitUpdate)(item.clothesId, { scale: scale.value });
+      runOnJS(onCommitUpdate)(item.itemId, { scale: scale.value });
     });
 
   // 旋转手势
   const rotationGesture = Gesture.Rotation()
     .onStart(() => {
-      runOnJS(onSelect)(item.clothesId);
+      runOnJS(onSelect)(item.itemId);
     })
     .onUpdate((e) => {
       rotation.value = savedRotation.value + e.rotation;
     })
     .onEnd(() => {
       savedRotation.value = rotation.value;
-      runOnJS(onCommitUpdate)(item.clothesId, { rotation: rotation.value });
+      runOnJS(onCommitUpdate)(item.itemId, { rotation: rotation.value });
     });
 
   // 轻点选中
   const tapGesture = Gesture.Tap().onEnd((_e, success) => {
     if (success) {
-      runOnJS(onSelect)(item.clothesId);
+      runOnJS(onSelect)(item.itemId);
     }
   });
 
@@ -133,8 +133,8 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
     .maxDistance(10)
     .onEnd((_e, success) => {
       if (!success) return;
-      runOnJS(onSelect)(item.clothesId);
-      runOnJS(onLongPress)(item.clothesId);
+      runOnJS(onSelect)(item.itemId);
+      runOnJS(onLongPress)(item.itemId);
     });
 
   // 组合手势：拖拽 + 缩放 + 旋转同时进行

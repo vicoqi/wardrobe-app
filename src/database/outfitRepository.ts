@@ -4,6 +4,7 @@
 
 import { getDatabase } from './db';
 import { Outfit, SaveOutfitParams, CanvasItemPosition } from '../types';
+import { normalizeCanvasItems } from '../utils/canvasItems';
 
 interface OutfitRow {
   id: number;
@@ -21,7 +22,7 @@ const rowToOutfit = (row: OutfitRow): Outfit => ({
   id: row.id,
   name: row.name,
   thumbnail: row.thumbnail,
-  items: JSON.parse(row.items_json) as CanvasItemPosition[],
+  items: normalizeCanvasItems(JSON.parse(row.items_json) as CanvasItemPosition[]),
   created_at: row.created_at,
   updated_at: row.updated_at,
 });

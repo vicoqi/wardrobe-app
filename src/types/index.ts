@@ -54,6 +54,7 @@ export interface PaginatedResult<T> {
 
 // 画布上衣服项的位置信息
 export interface CanvasItemPosition {
+  itemId: number;
   clothesId: number;
   x: number;
   y: number;

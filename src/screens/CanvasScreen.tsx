@@ -38,6 +38,7 @@ export const CanvasScreen: React.FC<Props> = ({ navigation }) => {
     isSaving,
     addItem,
     commitPositionUpdate,
+    bringItemToFront,
     removeItem,
     clearCanvas,
     undo,
@@ -114,6 +115,7 @@ export const CanvasScreen: React.FC<Props> = ({ navigation }) => {
         canvasRef={canvasRef}
         items={canvasItems}
         onCommitUpdate={commitPositionUpdate}
+        onSelectItem={bringItemToFront}
         onRemoveItem={removeItem}
       />
 
