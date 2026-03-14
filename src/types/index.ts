@@ -80,6 +80,34 @@ export interface SaveOutfitParams {
   items: CanvasItemPosition[];
 }
 
+// 天气类型
+export type WeatherType =
+  | 'sunny'
+  | 'cloudy'
+  | 'partlyCloudy'
+  | 'rainy'
+  | 'snowy'
+  | 'foggy'
+  | 'windy'
+  | 'thunderstorm'
+  | 'hazy'
+  | 'unknown';
+
+// 天气数据
+export interface WeatherData {
+  temperature: number;
+  feelsLike: number;
+  weatherType: WeatherType;
+  description: string;
+  location: string;
+  humidity: number;
+  windSpeed: string;
+  windDir: string;
+  pressure: string;
+  visibility: string;
+  updateTime: string;
+}
+
 // 导航参数类型
 export type RootStackParamList = {
   Home: undefined;

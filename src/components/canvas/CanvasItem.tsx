@@ -151,7 +151,6 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       { scale: withSpring(scale.value, { damping: 20, stiffness: 200 }) },
       { rotateZ: `${rotation.value}rad` },
     ],
-    zIndex: item.zIndex,
   }));
 
   return (
@@ -159,6 +158,10 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       <Animated.View
         style={[
           styles.container,
+          {
+            zIndex: item.zIndex,
+            elevation: item.zIndex,
+          },
           animatedStyle,
           isSelected && styles.selectedContainer,
         ]}

@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wardrobe.app"
+      "bundleIdentifier": "com.wardrobe.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "需要获取您的位置以提供当地天气信息，帮助您选择合适的穿搭"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +26,9 @@
       },
       "package": "com.wardrobe.app",
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -36,6 +41,13 @@
         {
           "photosPermission": "需要访问相册以选择衣服图片",
           "cameraPermission": "需要访问相机以拍摄衣服照片"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "需要获取您的位置以提供当地天气信息，帮助您选择合适的穿搭",
+          "locationWhenInUsePermission": "需要获取您的位置以提供当地天气信息"
         }
       ],
       "expo-sqlite",

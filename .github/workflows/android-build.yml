@@ -85,6 +85,16 @@ jobs:
           echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
           echo "Using EAS profile: $PROFILE"
 
+      - name: Sync environment variables to EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_QWEATHER_API_KEY: ${{ secrets.EXPO_PUBLIC_QWEATHER_API_KEY }}
+        run: |
+          if [ -n "$EXPO_PUBLIC_QWEATHER_API_KEY" ]; then
+            echo "Syncing EXPO_PUBLIC_QWEATHER_API_KEY to EAS..."
+            npx --yes eas-cli@latest env:create --force --variable EXPO_PUBLIC_QWEATHER_API_KEY="$EXPO_PUBLIC_QWEATHER_API_KEY" || true
+          fi
+
       - name: Build Android on EAS (wait)
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

@@ -10,11 +10,13 @@ import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList, CategoryType, ClothesItem } from '../types';
 import { COLORS, SPACING } from '../constants/colors';
 import { HeaderSection } from '../components/home/HeaderSection';
+import { WeatherSection } from '../components/home/WeatherSection';
 import { QuickAddSection } from '../components/home/QuickAddSection';
 import { CategorySection } from '../components/home/CategorySection';
 import { RecentItemsSection } from '../components/home/RecentItemsSection';
 import { Sidebar } from '../components/common/Sidebar';
 import { useHomeData } from '../hooks/useHomeData';
+import { useWeather } from '../hooks/useWeather';
 import { pickImageFromCamera, pickImageFromAlbum } from '../utils/imageUtils';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -22,6 +24,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const { totalCount, categoryCounts, recentItems, isLoading, error } = useHomeData();
+  const { weather, isLoading: weatherLoading, error: weatherError, refresh: refreshWeather } = useWeather();
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // 添加新衣服
@@ -84,6 +87,14 @@ export const HomeScreen: React.FC = () => {
         <HeaderSection
           totalCount={totalCount}
           onMenuPress={() => setSidebarVisible(true)}
+        />
+
+        {/* 天气卡片 */}
+        <WeatherSection
+          weather={weather}
+          isLoading={weatherLoading}
+          error={weatherError}
+          onRefresh={refreshWeather}
         />
 
         {/* 快速添加区 */}

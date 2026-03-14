@@ -114,10 +114,9 @@ export const useCanvas = () => {
       const newItems = prev.map((item) =>
         item.itemId === itemId ? { ...item, zIndex: newZIndex } : item
       );
-      saveToHistory(newItems);
       return newItems;
     });
-  }, [saveToHistory]);
+  }, []);
 
   /**
    * 删除衣服

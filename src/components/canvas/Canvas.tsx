@@ -39,6 +39,16 @@ export const Canvas: React.FC<CanvasProps> = ({
     () => clothesIds.join(','),
     [clothesIds]
   );
+  const sortedItems = React.useMemo(
+    () =>
+      [...items].sort((left, right) => {
+        if (left.zIndex !== right.zIndex) {
+          return left.zIndex - right.zIndex;
+        }
+        return left.itemId - right.itemId;
+      }),
+    [items]
+  );
 
   // 加载衣服信息
   React.useEffect(() => {
@@ -118,7 +128,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       style={styles.container}
       collapsable={false}
     >
-      {items.map((item) => {
+      {sortedItems.map((item) => {
         const clothes = clothesMap.get(item.clothesId);
         if (!clothes) return null;
 
