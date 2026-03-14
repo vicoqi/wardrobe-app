@@ -13,6 +13,7 @@ const QWEATHER_API_KEY = process.env.EXPO_PUBLIC_QWEATHER_API_KEY || '';
 
 // API 基础 URL（免费订阅使用 devapi，付费订阅使用 api）
 const QWEATHER_BASE_URL = 'https://devapi.qweather.com/v7';
+const QWEATHER_GEO_BASE_URL = 'https://geoapi.qweather.com/v2';
 
 // 位置信息响应
 interface QWeatherGeoResponse {
@@ -53,7 +54,7 @@ export const getLocationName = async (
 ): Promise<string> => {
   try {
     // 使用和风天气的城市查询 API
-    const url = `${QWEATHER_BASE_URL.replace('/v7', '/v2')}/city/lookup?location=${longitude},${latitude}&key=${QWEATHER_API_KEY}`;
+    const url = `${QWEATHER_GEO_BASE_URL}/city/lookup?location=${longitude},${latitude}&key=${QWEATHER_API_KEY}`;
     const response = await fetch(url);
     const data: QWeatherGeoResponse = await response.json();
 
