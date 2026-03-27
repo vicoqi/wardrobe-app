@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { StyleSheet, Image, Dimensions } from 'react-native';
+import { StyleSheet, Image } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -12,14 +12,13 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { CanvasItemPosition } from '../../types';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CANVAS_WIDTH = SCREEN_WIDTH;
-const CANVAS_HEIGHT = SCREEN_HEIGHT - 200; // 减去头部和工具栏高度
-
-const ITEM_SIZE = 120;
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 2.5;
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  ITEM_SIZE,
+  MIN_SCALE,
+  MAX_SCALE,
+} from '../../constants/canvas';
 
 interface CanvasItemProps {
   item: CanvasItemPosition;
@@ -73,9 +72,11 @@ export const CanvasItem: React.FC<CanvasItemProps> = ({
       savedTranslateX.value = translateX.value;
       savedTranslateY.value = translateY.value;
 
-      // 边界限制
-      const boundedX = Math.max(-ITEM_SIZE / 2, Math.min(CANVAS_WIDTH - ITEM_SIZE / 2, translateX.value));
-      const boundedY = Math.max(-ITEM_SIZE / 2, Math.min(CANVAS_HEIGHT - ITEM_SIZE / 2, translateY.value));
+      // 边界限制（考虑缩放后的实际尺寸）
+      const actualSize = ITEM_SIZE * scale.value;
+      const halfSize = actualSize / 2;
+      const boundedX = Math.max(-halfSize, Math.min(CANVAS_WIDTH - halfSize, translateX.value));
+      const boundedY = Math.max(-halfSize, Math.min(CANVAS_HEIGHT - halfSize, translateY.value));
 
       translateX.value = boundedX;
       translateY.value = boundedY;
