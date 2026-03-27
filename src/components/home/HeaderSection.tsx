@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SPACING, FONT_SIZE } from '../../constants/colors';
+import { COLORS, SPACING, FONT_SIZE, SHADOWS } from '../../constants/colors';
 
 interface HeaderSectionProps {
   totalCount: number;
@@ -23,16 +23,19 @@ export const HeaderSection: React.FC<HeaderSectionProps> = ({
   return (
     <View style={[styles.container, { paddingTop: insets.top + SPACING.md }]}>
       {/* 头像按钮 */}
-      <TouchableOpacity style={styles.headerRow} onPress={onMenuPress}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>👤</Text>
+      <TouchableOpacity style={styles.headerRow} onPress={onMenuPress} activeOpacity={0.7}>
+        <View style={styles.avatarRing}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>💃</Text>
+          </View>
         </View>
-        <Text style={styles.title}>{userName}的衣橱</Text>
+        <View style={styles.textWrap}>
+          <Text style={styles.title}>{userName}的衣橱</Text>
+          <Text style={styles.subtitle}>
+            共 <Text style={styles.count}>{totalCount}</Text> 件衣服 ✨
+          </Text>
+        </View>
       </TouchableOpacity>
-
-      <Text style={styles.subtitle}>
-        共 <Text style={styles.count}>{totalCount}</Text> 件衣服
-      </Text>
     </View>
   );
 };
@@ -47,22 +50,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  avatarRing: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...SHADOWS.small,
+    borderWidth: 2,
+    borderColor: 'rgba(240,98,146,0.3)',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFF5F8',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: 22,
+  },
+  textWrap: {
+    marginLeft: SPACING.xs,
   },
   title: {
     fontSize: FONT_SIZE.xxxl,
@@ -72,8 +84,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FONT_SIZE.md,
     color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
-    marginLeft: 44 + SPACING.md,
+    marginTop: 2,
   },
   count: {
     color: COLORS.primary,

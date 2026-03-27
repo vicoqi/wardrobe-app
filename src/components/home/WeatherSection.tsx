@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: SPACING.lg,
     marginVertical: SPACING.sm,
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#FFF5F8',
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
     ...SHADOWS.small,

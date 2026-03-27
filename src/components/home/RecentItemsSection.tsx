@@ -21,7 +21,10 @@ export const RecentItemsSection: React.FC<RecentItemsSectionProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>最近添加</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleBar} />
+        <Text style={styles.sectionTitle}>最近添加</Text>
+      </View>
 
       {hasItems ? (
         <View style={styles.grid}>
@@ -62,11 +65,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  titleBar: {
+    width: 4,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+    marginRight: SPACING.sm,
+  },
   sectionTitle: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '600',
     color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
   },
   grid: {
     flexDirection: 'row',

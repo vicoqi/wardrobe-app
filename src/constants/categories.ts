@@ -10,6 +10,7 @@ export interface CategoryConfig {
   label: string;
   icon: string;
   color: string;
+  lightColor: string;
 }
 
 // 分类配置列表
@@ -17,38 +18,44 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
   {
     type: 'tops',
     label: '上衣',
-    icon: '👕',
+    icon: '👚',
     color: COLORS.categoryTops,
+    lightColor: '#FDE8EF',
   },
   {
     type: 'pants',
     label: '裤子',
     icon: '👖',
     color: COLORS.categoryPants,
+    lightColor: '#E4F5F3',
   },
   {
     type: 'skirts',
     label: '裙子',
     icon: '👗',
     color: COLORS.categorySkirts,
+    lightColor: '#F3E5F5',
   },
   {
     type: 'shoes',
     label: '鞋子',
-    icon: '👟',
+    icon: '👠',
     color: COLORS.categoryShoes,
+    lightColor: '#FFF0EB',
   },
   {
     type: 'bags',
     label: '包包',
     icon: '👜',
     color: COLORS.categoryBags,
+    lightColor: '#EDE7F6',
   },
   {
     type: 'accessories',
     label: '配饰',
     icon: '💍',
     color: COLORS.categoryAccessories,
+    lightColor: '#FFFDE7',
   },
 ];
 
