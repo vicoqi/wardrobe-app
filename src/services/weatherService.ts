@@ -8,12 +8,15 @@ import { WeatherData, WeatherType } from '../types';
 import { getWeatherTypeFromCode } from '../constants/weather';
 
 // 和风天气 API Key - 从环境变量获取
-// 用户需要到 https://dev.qweather.com/ 注册并获取免费 API Key
+// 用户需要到 https://dev.qweather.com/ 注册并获取 API Key
 const QWEATHER_API_KEY = process.env.EXPO_PUBLIC_QWEATHER_API_KEY || '';
 
-// API 基础 URL（免费订阅使用 devapi，付费订阅使用 api）
-const QWEATHER_BASE_URL = 'https://devapi.qweather.com/v7';
-const QWEATHER_GEO_BASE_URL = 'https://geoapi.qweather.com/v2';
+// API Host - 从环境变量获取，在控制台-设置中查看
+const QWEATHER_API_HOST = process.env.EXPO_PUBLIC_QWEATHER_API_HOST || '';
+
+// API 基础 URL
+const QWEATHER_BASE_URL = `https://${QWEATHER_API_HOST}/v7`;
+const QWEATHER_GEO_BASE_URL = `https://${QWEATHER_API_HOST}/v2`;
 
 // 位置信息响应
 interface QWeatherGeoResponse {
@@ -54,8 +57,10 @@ export const getLocationName = async (
 ): Promise<string> => {
   try {
     // 使用和风天气的城市查询 API
-    const url = `${QWEATHER_GEO_BASE_URL}/city/lookup?location=${longitude},${latitude}&key=${QWEATHER_API_KEY}`;
-    const response = await fetch(url);
+    const url = `${QWEATHER_GEO_BASE_URL}/city/lookup?location=${longitude},${latitude}`;
+    const response = await fetch(url, {
+      headers: { 'X-QW-Api-Key': QWEATHER_API_KEY },
+    });
     const data: QWeatherGeoResponse = await response.json();
 
     if (data.code === '200' && data.location && data.location.length > 0) {
@@ -88,10 +93,12 @@ export const fetchWeatherData = async (
 
   try {
     // 并行获取位置信息和天气数据
+    const headers = { 'X-QW-Api-Key': QWEATHER_API_KEY };
     const [locationName, weatherResponse] = await Promise.all([
       getLocationName(latitude, longitude),
       fetch(
-        `${QWEATHER_BASE_URL}/weather/now?location=${longitude},${latitude}&key=${QWEATHER_API_KEY}`
+        `${QWEATHER_BASE_URL}/weather/now?location=${longitude},${latitude}`,
+        { headers }
       ).then((res) => res.json()),
     ]);
 
