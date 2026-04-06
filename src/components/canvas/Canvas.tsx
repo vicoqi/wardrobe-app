@@ -3,13 +3,11 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, Dimensions, Alert } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { CanvasItemPosition, ClothesItem } from '../../types';
 import { getClothesById } from '../../database/clothesRepository';
 import { CanvasItem } from './CanvasItem';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CANVAS_HEIGHT = SCREEN_HEIGHT - 200; // 减去头部和工具栏高度
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/canvas';
 
 interface CanvasProps {
   canvasRef: React.RefObject<View | null>;
@@ -122,11 +120,16 @@ export const Canvas: React.FC<CanvasProps> = ({
     );
   };
 
+  const handleDeselect = () => {
+    setSelectedId(null);
+  };
+
   return (
-    <View
+    <TouchableOpacity
       ref={canvasRef}
       style={styles.container}
-      collapsable={false}
+      activeOpacity={1}
+      onPress={handleDeselect}
     >
       {sortedItems.map((item) => {
         const clothes = clothesMap.get(item.clothesId);
@@ -144,13 +147,13 @@ export const Canvas: React.FC<CanvasProps> = ({
           />
         );
       })}
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH,
+    width: CANVAS_WIDTH,
     height: CANVAS_HEIGHT,
     backgroundColor: '#FAFAFA',
   },

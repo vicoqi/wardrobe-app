@@ -17,11 +17,24 @@ export const useCanvas = () => {
   const [canvasItems, setCanvasItems] = useState<CanvasItemPosition[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 历史指针 state，用于驱动 canUndo/canRedo 的响应式更新
+  const [historyPointer, setHistoryPointer] = useState({ index: 0, length: 1 });
+
   // 历史记录（用于撤销/重做）
   const historyRef = useRef<CanvasItemPosition[][]>([[]]);
   const historyIndexRef = useRef(0);
   const nextItemIdRef = useRef(1);
   const nextZIndexRef = useRef(1);
+
+  /**
+   * 同步历史指针到 state
+   */
+  const syncHistoryPointer = useCallback(() => {
+    setHistoryPointer({
+      index: historyIndexRef.current,
+      length: historyRef.current.length,
+    });
+  }, []);
 
   /**
    * 保存当前状态到历史记录
@@ -62,9 +75,10 @@ export const useCanvas = () => {
       };
       const newItems = [...prev, newItem];
       saveToHistory(newItems);
+      syncHistoryPointer();
       return newItems;
     });
-  }, [saveToHistory]);
+  }, [saveToHistory, syncHistoryPointer]);
 
   /**
    * 提交位置更新到历史记录（拖拽结束时调用）
@@ -85,10 +99,11 @@ export const useCanvas = () => {
           item.itemId === itemId ? { ...item, ...updates } : item
         );
         saveToHistory(newItems);
+        syncHistoryPointer();
         return newItems;
       });
     },
-    [saveToHistory]
+    [saveToHistory, syncHistoryPointer]
   );
 
   /**
@@ -114,9 +129,11 @@ export const useCanvas = () => {
       const newItems = prev.map((item) =>
         item.itemId === itemId ? { ...item, zIndex: newZIndex } : item
       );
+      saveToHistory(newItems);
+      syncHistoryPointer();
       return newItems;
     });
-  }, []);
+  }, [saveToHistory, syncHistoryPointer]);
 
   /**
    * 删除衣服
@@ -125,9 +142,10 @@ export const useCanvas = () => {
     setCanvasItems((prev) => {
       const newItems = prev.filter((item) => item.itemId !== itemId);
       saveToHistory(newItems);
+      syncHistoryPointer();
       return newItems;
     });
-  }, [saveToHistory]);
+  }, [saveToHistory, syncHistoryPointer]);
 
   /**
    * 清空画布
@@ -135,7 +153,8 @@ export const useCanvas = () => {
   const clearCanvas = useCallback(() => {
     setCanvasItems([]);
     saveToHistory([]);
-  }, [saveToHistory]);
+    syncHistoryPointer();
+  }, [saveToHistory, syncHistoryPointer]);
 
   /**
    * 撤销
@@ -147,8 +166,9 @@ export const useCanvas = () => {
     if (currentIndex > 0) {
       historyIndexRef.current = currentIndex - 1;
       setCanvasItems([...history[currentIndex - 1]]);
+      syncHistoryPointer();
     }
-  }, []);
+  }, [syncHistoryPointer]);
 
   /**
    * 重做
@@ -160,22 +180,26 @@ export const useCanvas = () => {
     if (currentIndex < history.length - 1) {
       historyIndexRef.current = currentIndex + 1;
       setCanvasItems([...history[currentIndex + 1]]);
+      syncHistoryPointer();
     }
-  }, []);
+  }, [syncHistoryPointer]);
 
   /**
-   * 是否可以撤销
+   * 是否可以撤销（从 state 派生，保证响应式）
    */
-  const canUndo = historyIndexRef.current > 0;
+  const canUndo = historyPointer.index > 0;
 
   /**
-   * 是否可以重做
+   * 是否可以重做（从 state 派生，保证响应式）
    */
-  const canRedo = historyIndexRef.current < historyRef.current.length - 1;
+  const canRedo = historyPointer.index < historyPointer.length - 1;
 
   /**
    * 保存搭配（调用外部截图函数）
    */
+  const canvasItemsRef = useRef(canvasItems);
+  canvasItemsRef.current = canvasItems;
+
   const saveOutfit = useCallback(
     async (thumbnail: string, name?: string): Promise<number> => {
       setIsSaving(true);
@@ -183,14 +207,14 @@ export const useCanvas = () => {
         const id = await saveOutfitToDb({
           name,
           thumbnail,
-          items: canvasItems,
+          items: canvasItemsRef.current,
         });
         return id;
       } finally {
         setIsSaving(false);
       }
     },
-    [canvasItems]
+    []
   );
 
   /**
@@ -204,7 +228,8 @@ export const useCanvas = () => {
     nextItemIdRef.current = getNextCanvasItemId(normalizedItems);
     nextZIndexRef.current = getNextCanvasZIndex(normalizedItems);
     saveToHistory(normalizedItems);
-  }, [saveToHistory]);
+    syncHistoryPointer();
+  }, [saveToHistory, syncHistoryPointer]);
 
   return {
     canvasItems,
