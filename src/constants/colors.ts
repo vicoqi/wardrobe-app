@@ -4,38 +4,38 @@
 
 // 主色调
 export const COLORS = {
-  // 品牌色
-  primary: '#FF6B6B',
-  primaryLight: '#FF8E8E',
-  primaryDark: '#E85555',
+  // 品牌色 — 柔美玫瑰粉系
+  primary: '#F06292',
+  primaryLight: '#F8BBD0',
+  primaryDark: '#D84878',
 
   // 背景色
-  background: '#FFE5EC',
+  background: '#FFF0F5',
   surface: '#FFFFFF',
 
   // 文字色
-  textPrimary: '#2D2D2D',
-  textSecondary: '#666666',
-  textTertiary: '#999999',
+  textPrimary: '#3D2C2C',
+  textSecondary: '#7B6B6B',
+  textTertiary: '#A89898',
   textWhite: '#FFFFFF',
 
   // 功能色
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#F44336',
-  info: '#2196F3',
+  success: '#81C784',
+  warning: '#FFB74D',
+  error: '#E57373',
+  info: '#90CAF9',
 
-  // 分类色
-  categoryTops: '#FF6B6B',
-  categoryPants: '#4ECDC4',
-  categorySkirts: '#FFE66D',
-  categoryShoes: '#95E1D3',
-  categoryBags: '#DDA0DD',
-  categoryAccessories: '#F7DC6F',
+  // 分类色 — 马卡龙柔和色系
+  categoryTops: '#F48FB1',    // 玫瑰粉
+  categoryPants: '#80CBC4',   // 薄荷绿
+  categorySkirts: '#CE93D8',  // 淡紫丁香
+  categoryShoes: '#FFAB91',   // 蜜桃橙
+  categoryBags: '#B39DDB',    // 薰衣草紫
+  categoryAccessories: '#FFF59D', // 柠檬奶黄
 
   // 边框和分割线
-  border: '#E0E0E0',
-  divider: '#F0F0F0',
+  border: '#F0E0E0',
+  divider: '#F8F0F0',
 } as const;
 
 // 间距

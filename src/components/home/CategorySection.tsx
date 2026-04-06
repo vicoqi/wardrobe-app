@@ -1,5 +1,5 @@
 /**
- * 分类入口区组件
+ * 分类入口区组件 — 3D 立体图标 + 柔美配色
  */
 
 import React from 'react';
@@ -21,34 +21,34 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
     const count = categoryCounts.find((item) => item.category === config.type);
     return { ...config, count: count?.count ?? 0 };
   });
-  const categoryColumns = [];
-  for (let i = 0; i < allCategories.length; i += 2) {
-    categoryColumns.push(allCategories.slice(i, i + 2));
-  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>分类浏览</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleBar} />
+        <Text style={styles.sectionTitle}>分类浏览</Text>
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.horizontalList}
       >
-        {categoryColumns.map((column, columnIndex) => (
-          <View key={`column-${columnIndex}`} style={styles.column}>
-            {column.map((item) => (
-              <TouchableOpacity
-                key={item.type}
-                style={[styles.card, { borderLeftColor: item.color }]}
-                onPress={() => onCategoryPress(item.type)}
-                activeOpacity={0.7}
-              >
+        {allCategories.map((item) => (
+          <TouchableOpacity
+            key={item.type}
+            style={[styles.card, { backgroundColor: item.lightColor }]}
+            onPress={() => onCategoryPress(item.type)}
+            activeOpacity={0.7}
+          >
+            {/* 3D 立体图标容器 */}
+            <View style={[styles.iconContainer, { shadowColor: item.color }]}>
+              <View style={[styles.iconBg, { backgroundColor: item.color }]}>
                 <Text style={styles.cardIcon}>{item.icon}</Text>
-                <Text style={styles.cardLabel}>{item.label}</Text>
-                <Text style={styles.cardCount}>{item.count} 件</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              </View>
+            </View>
+            <Text style={styles.cardLabel}>{item.label}</Text>
+            <Text style={styles.cardCount}>{item.count} 件</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
@@ -57,43 +57,65 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+  titleBar: {
+    width: 4,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+    marginRight: SPACING.sm,
   },
   sectionTitle: {
     fontSize: FONT_SIZE.lg,
     fontWeight: '600',
     color: COLORS.textPrimary,
-    marginBottom: SPACING.md,
   },
   horizontalList: {
+    paddingHorizontal: SPACING.lg,
     paddingRight: SPACING.sm,
   },
-  column: {
-    width: 140,
-    marginRight: SPACING.md,
-    gap: SPACING.md,
-  },
   card: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
+    width: 100,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.md,
-    borderLeftWidth: 4,
+    marginRight: SPACING.md,
+    alignItems: 'center',
     ...SHADOWS.small,
   },
+  iconContainer: {
+    marginBottom: SPACING.sm,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+    borderRadius: 24,
+  },
+  iconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   cardIcon: {
-    fontSize: 28,
-    marginBottom: SPACING.xs,
+    fontSize: 24,
   },
   cardLabel: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
     color: COLORS.textPrimary,
+    marginTop: 2,
   },
   cardCount: {
-    fontSize: FONT_SIZE.sm,
+    fontSize: FONT_SIZE.xs,
     color: COLORS.textTertiary,
-    marginTop: SPACING.xs,
+    marginTop: 2,
   },
 });
