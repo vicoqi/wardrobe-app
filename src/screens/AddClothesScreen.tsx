@@ -27,6 +27,8 @@ import { ActionButtons } from '../components/add/ActionButtons';
 import { CategorySelector } from '../components/add/CategorySelector';
 import { SeasonSelector } from '../components/add/SeasonSelector';
 import { NotesInput } from '../components/add/NotesInput';
+import { ImageComparison } from '../components/add/ImageComparison';
+import { beautifyImage } from '../services/imageBeautifyService';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddClothes'>;
 type AddClothesRouteProp = RouteProp<RootStackParamList, 'AddClothes'>;
@@ -41,6 +43,9 @@ interface State {
   price: string;
   notes: string;
   saving: boolean;
+  originalImageUri: string | null;
+  beautifiedUri: string | null;
+  isBeautifying: boolean;
 }
 
 export const AddClothesScreen: React.FC = () => {
@@ -57,13 +62,16 @@ export const AddClothesScreen: React.FC = () => {
     price: '',
     notes: '',
     saving: false,
+    originalImageUri: route.params?.imageUri ?? null,
+    beautifiedUri: null,
+    isBeautifying: false,
   });
 
   // 处理拍照
   const handleCameraPress = async () => {
     const uri = await pickImageFromCamera();
     if (uri) {
-      setState((prev) => ({ ...prev, imageUri: uri }));
+      setState((prev) => ({ ...prev, imageUri: uri, originalImageUri: uri, beautifiedUri: null }));
     }
   };
 
@@ -71,8 +79,32 @@ export const AddClothesScreen: React.FC = () => {
   const handleAlbumPress = async () => {
     const uri = await pickImageFromAlbum();
     if (uri) {
-      setState((prev) => ({ ...prev, imageUri: uri }));
+      setState((prev) => ({ ...prev, imageUri: uri, originalImageUri: uri, beautifiedUri: null }));
     }
+  };
+
+  // 处理美化
+  const handleBeautify = async () => {
+    if (!state.originalImageUri || state.isBeautifying) return;
+
+    setState((prev) => ({ ...prev, isBeautifying: true }));
+    try {
+      const result = await beautifyImage(state.originalImageUri);
+      if (result) {
+        setState((prev) => ({ ...prev, beautifiedUri: result }));
+      } else {
+        Alert.alert('提示', '美化失败，请检查网络后重试');
+      }
+    } catch {
+      Alert.alert('提示', '美化失败，请稍后再试');
+    } finally {
+      setState((prev) => ({ ...prev, isBeautifying: false }));
+    }
+  };
+
+  // 处理选中图片变化
+  const handleSelectedChange = (uri: string) => {
+    setState((prev) => ({ ...prev, imageUri: uri }));
   };
 
   // 处理分类选择
@@ -177,7 +209,7 @@ export const AddClothesScreen: React.FC = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, state.saving, state.imageUri, state.name, state.category, state.seasons, state.color, state.brand, state.price, state.notes]);
+  }, [navigation, state.saving, state.imageUri, state.name, state.category, state.seasons, state.color, state.brand, state.price, state.notes, state.originalImageUri, state.beautifiedUri, state.isBeautifying]);
 
   return (
     <KeyboardAvoidingView
@@ -190,13 +222,23 @@ export const AddClothesScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* 图片预览 */}
-        <ImagePreview
-          imageUri={state.imageUri}
-          onPlaceholderPress={() => {
-            void handleCameraPress();
-          }}
-        />
+        {/* 图片预览 / 美化对比 */}
+        {state.imageUri && state.originalImageUri ? (
+          <ImageComparison
+            originalUri={state.originalImageUri}
+            beautifiedUri={state.beautifiedUri}
+            isBeautifying={state.isBeautifying}
+            onSelectedChange={handleSelectedChange}
+            onBeautifyPress={handleBeautify}
+          />
+        ) : (
+          <ImagePreview
+            imageUri={null}
+            onPlaceholderPress={() => {
+              void handleCameraPress();
+            }}
+          />
+        )}
 
         {/* 操作按钮 */}
         <View style={styles.section}>
